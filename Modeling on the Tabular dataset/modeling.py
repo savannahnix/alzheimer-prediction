@@ -822,12 +822,12 @@ def run_deepsurv(X_imp, y_event, y_duration, label,
     skf = StratifiedKFold(n_splits=N_FOLDS, shuffle=True, random_state=seed)
 
     def objective(trial):
-        arch_idx = trial.suggest_categorical('arch_idx', list(range(len(ARCH_OPTIONS))))
+        arch_idx = trial.suggest_categorical('arch_idx', [0, 1, 2, 3])
         hidden   = ARCH_OPTIONS[arch_idx]
         dropout  = trial.suggest_float('dropout', 0.05, 0.50)
-        lr       = trial.suggest_float('lr', 5e-5, 5e-2, log=True)
+        lr = trial.suggest_float('lr', 5e-5, 5e-3, log=True)
         wd       = trial.suggest_float('wd', 1e-5, 1e-2, log=True)
-        batch_sz = trial.suggest_categorical('batch', [32, 64, 128, 256])
+        batch_sz = trial.suggest_categorical('batch', [64, 128, 256])
 
         fold_cs_val, fold_cs_train = [], []
         for tr, va in skf.split(X_scaled, y_event):
