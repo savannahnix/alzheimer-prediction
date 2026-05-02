@@ -914,7 +914,14 @@ def run_deepsurv(X_imp, y_event, y_duration, label,
     except Exception:
         pass
 
-    final.compute_baseline_hazards()
+    final.compute_baseline_hazards(
+        input=X_tr_sc,
+        target=(
+            y_duration[idx_tr].astype(np.float32),
+            y_event[idx_tr].astype(np.float32)
+        ),
+        batch_size=256
+    )
 
     surv_all = final.predict_surv_df(scaler.transform(X_imp.values).astype(np.float32))
     ev_all = EvalSurv(surv_all, y_duration.astype(np.float64), y_event.astype(bool))
