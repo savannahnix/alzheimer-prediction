@@ -1,4 +1,3 @@
-# Baseline/config.py
 """Shared constants for the ADNI survival pipeline."""
 from pathlib import Path
 
