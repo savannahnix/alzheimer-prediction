@@ -1,14 +1,11 @@
 # N.E.U.R.O.N.
 ### Neuroimaging and Event-based Unified Risk Outcomes Network
-#### Rice University Capstone — Spring 2026
+#### Rice University D2K Capstone — Spring 2026
 
-A survival analysis pipeline for predicting Alzheimer's disease progression using longitudinal data from the Alzheimer's Disease Neuroimaging Initiative (ADNI). The pipeline predicts two clinical transitions: **MCI → Alzheimer's Dementia** and **CN → MCI or AD**, using four model families with full hyperparameter optimization, bootstrap confidence intervals, and cross-cohort evaluation.
+A survival analysis pipeline for predicting Alzheimer's disease progression using longitudinal data from the Alzheimer's Disease Neuroimaging Initiative (ADNI). The pipeline predicts two clinical transitions — **MCI → Alzheimer's Dementia** and **CN → MCI or AD** — using four model families with full hyperparameter optimization, bootstrap confidence intervals, and cross-cohort evaluation.
 
 **Team:** Nathon Chavez, Omar Dajani, Eliza Iqbal, Savannah Nix, Fabrizio Pacheco, Evie Roth, Shichen Tang  
-**Sponsor:** Cindy Zhang
-**Instructor:** Xinjie Lan
-**Mentor:** Antonio Mendoza Gonzales
-
+**Sponsor:** Antonio Mendoza Gonzales
 
 ---
 
@@ -31,27 +28,60 @@ All metrics are IPCW Antolini time-dependent C-td on a held-out 20% test set wit
 
 ```
 alzheimer-prediction/
-├── Modeling on the Tabular dataset/
-│   ├── notebook509862e120__5_.ipynb   # Main pipeline notebook
-│   ├── modeling.py                    # Model training (Cox PH, GBSA, AFT, DeepSurv)
+│
+├── Data/
+│   └── Data Preprocessing Pipeline/   # Scripts to build the merged ADNI CSV
+│       ├── 01_mri_prep_improved_v2_aws.py
+│       ├── 02_tabular_prep_improved_v2_aws.py
+│       ├── phase2_dicom_to_nifti_aws.py
+│       ├── phase3_3_generate_flows.py
+│       ├── aws_download_from_s3.sh
+│       ├── aws_setup.sh
+│       └── run_pipeline_aws.sh
+│
+├── EDA/
+│   ├── Merge/                         # Table merging notebooks
+│   ├── genetic_biomarker_EDA/
+│   ├── mri_imaging_eda_02.28.2026/
+│   ├── mri_imaging_eda_03.08.2026/
+│   ├── patient_count_EDA/
+│   └── tabular_feature_EDA/
+│
+├── Modeling on the Imaging Dataset/   # Transformer-based survival model on MRI
+│   ├── Config/
+│   ├── Data/
+│   ├── Losses/
+│   ├── Metrics/
+│   ├── Models/
+│   ├── Training/
+│   ├── Utils/
+│   ├── WORKFLOW.md
+│   ├── run_all_pipeline.ipynb
+│   └── train.py
+│
+├── Modeling on the Tabular dataset/   # Main tabular survival pipeline (this README)
+│   ├── Tabular_Survival_Analysis_Pipeline.ipynb   # Main notebook
+│   ├── modeling.py                    # Cox PH, GBSA, AFT, DeepSurv training
 │   ├── preprocessing.py               # Harmonization, imputation, feature engineering
 │   ├── postprocessing.py              # KM curves, survival curve plots
 │   ├── concordance.py                 # IPCW time-dependent C-td implementation
 │   ├── config.py                      # Shared path and constant configuration
-│   ├── requirements.txt               # Python dependencies
 │   ├── checkpoints/                   # Saved model checkpoints (.pkl) — not committed
 │   ├── figures/                       # Generated plots saved during notebook execution
-│   └── outputs/                       # model_comparison.csv and other result tables
-├── EDA/                               # Exploratory data analysis
-├── Transformer/                       # Transformer-based model experiments
-└── README.md
+│   ├── outputs/                       # model_comparison.csv and result tables
+│   └── tables/                        # Data files — not committed (see Data section)
+│
+├── .gitignore
+├── README.md
+├── environment.yml
+└── requirements.txt
 ```
 
 ---
 
 ## Data
 
-> **⚠️ ADNI data is not included in this repository.** Access requires an approved application under the ADNI Data Use Agreement. Do not commit data files to this repo.
+> **⚠️ ADNI data is not included in this repository.** Access requires an approved application under the ADNI Data Use Agreement. Do not commit data files to this repo — they are excluded via `.gitignore`.
 
 ### Applying for access
 
@@ -68,11 +98,17 @@ The pipeline uses a single merged CSV built from the ADNIMERGE R package, which 
 | `subjects.csv` | Demographics, diagnosis labels, APOE genotype |
 | `UCSFFSX7.csv` | Structural MRI volumes from FreeSurfer segmentation |
 
-The dataset used in this pipeline covers **2,430 baseline subjects** across CN, MCI, and AD diagnoses, with longitudinal follow-up of up to 10+ years.
+The merged dataset covers **2,430 baseline subjects** across CN, MCI, and AD diagnoses with longitudinal follow-up of up to 10+ years.
 
-### Placing the data
+### Building the merged CSV
 
-Once you have built the merged CSV, place it anywhere on your machine and update `DATA_PATH` in the path configuration cell of the notebook (Section 1.2).
+The `Data/Data Preprocessing Pipeline/` directory contains scripts to download and preprocess the raw ADNI data. See the scripts there for the full preprocessing workflow. Once you have the merged CSV, place it at:
+
+```
+Modeling on the Tabular dataset/tables/your_merged_adni.csv
+```
+
+Then update `DATA_PATH` in the path configuration cell of the notebook (Section 1.2).
 
 ---
 
@@ -82,7 +118,7 @@ Once you have built the merged CSV, place it anywhere on your machine and update
 
 - Python 3.9 or later
 - pip or conda
-- The merged ADNI CSV (see Data section above)
+- The merged ADNI CSV (see Data section)
 - A GPU is optional but speeds up DeepSurv training (~15–30 min on CPU vs ~5 min on GPU)
 
 ### Installation
@@ -91,7 +127,7 @@ Once you have built the merged CSV, place it anywhere on your machine and update
 
 ```bash
 git clone https://github.com/omar-dajani/alzheimer-prediction.git
-cd alzheimer-prediction/Modeling\ on\ the\ Tabular\ dataset
+cd "alzheimer-prediction/Modeling on the Tabular dataset"
 python -m venv .venv
 source .venv/bin/activate        # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
@@ -101,10 +137,9 @@ pip install -r requirements.txt
 
 ```bash
 git clone https://github.com/omar-dajani/alzheimer-prediction.git
-cd alzheimer-prediction/Modeling\ on\ the\ Tabular\ dataset
-conda create -n neuron python=3.10
+cd "alzheimer-prediction/Modeling on the Tabular dataset"
+conda env create -f environment.yml
 conda activate neuron
-pip install -r requirements.txt
 ```
 
 ### Key dependencies
@@ -112,15 +147,15 @@ pip install -r requirements.txt
 | Package | Purpose |
 |---------|---------|
 | `lifelines` | Cox PH, Weibull AFT, Kaplan-Meier |
-| `scikit-survival` | Gradient boosting survival analysis |
+| `scikit-survival` | Gradient boosting survival analysis (GBSA) |
 | `pycox` + `torchtuples` | DeepSurv neural Cox model |
 | `neuroCombat` | MRI scanner batch effect correction |
 | `optuna` | Bayesian hyperparameter optimization |
-| `shap` | SHAP feature attribution for AFT |
+| `shap` | Feature attribution for AFT model |
 | `scikit-learn` | MICE imputation, stratified splits |
 | `torch` | DeepSurv neural network backend |
 
-> If `neuroCombat` fails to install, try `pip install neuroCombat-sklearn` as an alternative.
+> If `neuroCombat` fails to install, try `pip install neuroCombat-sklearn` instead.
 
 ---
 
@@ -137,7 +172,7 @@ DATA_PATH = Path('/path/to/your/merged_adni.csv')
 
 These are the only two lines you need to change.
 
-### 2. Set RETRAIN flag
+### 2. Set the RETRAIN flag
 
 Near the top of the imports cell (Section 1.3):
 
@@ -148,23 +183,24 @@ RETRAIN = False  # Load from saved checkpoints (seconds)
 
 ### 3. Run the notebook
 
-Open the notebook in Jupyter, VS Code, or any environment that supports `.ipynb` files and run cells sequentially. The notebook is self-contained — all imports, data loading, model training, and visualization happen in order.
+Open `Tabular_Survival_Analysis_Pipeline.ipynb` in Jupyter, VS Code, or any environment that supports `.ipynb` files and run cells sequentially.
 
 ```bash
-jupyter notebook "notebook509862e120__5_.ipynb"
+cd "alzheimer-prediction/Modeling on the Tabular dataset"
+jupyter notebook Tabular_Survival_Analysis_Pipeline.ipynb
 # or
-jupyter lab "notebook509862e120__5_.ipynb"
+jupyter lab Tabular_Survival_Analysis_Pipeline.ipynb
 ```
 
 ### Outputs
 
-After a full run, the following are saved automatically:
+After a full run the following are saved automatically:
 
 | Location | Contents |
 |----------|----------|
 | `figures/` | Feature importance charts, KM quartile plots, individual survival curves, SHAP plots, Optuna diagnostics |
 | `outputs/model_comparison.csv` | Final ranked model comparison table with C-td and 95% CIs |
-| `checkpoints/` | Serialized model objects for each trained model — load with `RETRAIN = False` |
+| `checkpoints/` | Serialized model objects — reload with `RETRAIN = False` to skip retraining |
 
 ---
 
@@ -180,7 +216,7 @@ After a full run, the following are saved automatically:
 ### Data Processing
 
 1. **Diagnosis harmonization** — Remaps ADNI diagnosis variants (EMCI, LMCI, SMC, Dementia) to three canonical states (CN, MCI, AD)
-2. **Reversion removal** — Excludes MCI subjects who reverted to CN per sponsor guidance, classified into trajectory groups (transient noise, sustained recovery, bouncers, progressors)
+2. **Reversion removal** — Excludes MCI subjects who reverted to CN, classified into trajectory groups (transient noise, sustained recovery, bouncers, progressors)
 3. **MRI batch effect correction** — ComBat harmonization removes 1.5T vs 3T scanner bias while preserving biological variance
 4. **Tiered imputation** — Three-stage strategy: longitudinal nearest-neighbor fill → MICE → two-stage LightGBM CSF predictor for missing Amyloid-β
 5. **Feature engineering** — ICV-normalized MRI volumes, APOE4 interaction terms, ratio features
@@ -195,18 +231,14 @@ After a full run, the following are saved automatically:
 | CSF / PET biomarkers | Amyloid-β, Total Tau, Phospho-Tau, FDG-PET, AV45-PET |
 | APOE4 interactions | APOE4 × Amyloid Load, APOE4 × Tau Burden, APOE4 × Hippocampal Volume, APOE4 × Amyloid Positivity |
 
-Missingness flags, protocol dummies, and composite features that are linear combinations of included raw features are explicitly excluded.
-
 ### Models
 
 | Model | Type | HPO | Key strength |
 |-------|------|-----|-------------|
 | Cox PH | Semi-parametric linear | Optuna 30 trials, elastic-net regularization | Interpretable log hazard ratios, minimal overfitting |
 | GBSA | Tree-based non-linear | Optuna 40 trials, 5-fold CV | Captures non-linear threshold effects |
-| Weibull AFT | Parametric | 5-fold CV penalizer grid search | Absolute time predictions, best on CN cohort |
-| DeepSurv | Neural Cox PH | Optuna 25 trials, early stopping | Detects APOE4 interaction effects |
-
-All models are evaluated on a held-out 20% test set stratified by event status. Bootstrap 95% CIs use 500 resamples with no model refit.
+| Weibull AFT | Parametric | 5-fold CV penalizer grid search | Absolute time-to-event predictions, best CN model |
+| DeepSurv | Neural Cox PH | Optuna 25 trials, early stopping | Detects APOE4 × pathology interaction effects |
 
 ---
 
@@ -214,8 +246,8 @@ All models are evaluated on a held-out 20% test set stratified by event status. 
 
 - All random seeds set via `RANDOM_SEED = 42` and passed explicitly to all models, CV splitters, and imputers
 - Train/test split is fixed before any model sees data and never touched during HPO
-- Model checkpoints saved after each training run — set `RETRAIN = False` to reproduce results from saved checkpoints without retraining
-- `checkpoints/` is excluded from version control via `.gitignore` — regenerate by running with `RETRAIN = True`
+- `checkpoints/` is excluded from version control — regenerate by running with `RETRAIN = True`
+- ADNI data must not be committed per the ADNI Data Use Agreement — all CSV paths under `tables/` are in `.gitignore`
 
 ---
 
@@ -225,7 +257,7 @@ If the notebook fails to render on GitHub due to Optuna widget metadata, run thi
 
 ```python
 import json, pathlib
-nb_path = "notebook509862e120__5_.ipynb"
+nb_path = "Tabular_Survival_Analysis_Pipeline.ipynb"
 nb = json.loads(pathlib.Path(nb_path).read_text())
 nb["metadata"].pop("widgets", None)
 pathlib.Path(nb_path).write_text(json.dumps(nb, indent=1))
