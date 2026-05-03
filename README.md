@@ -42,12 +42,11 @@ alzheimer-prediction/
 │       └── run_pipeline_aws.sh
 │
 ├── EDA/
-│   ├── Merge/                         # Table merging notebooks
-│   ├── genetic_biomarker_EDA/
-│   ├── mri_imaging_eda_02.28.2026/
-│   ├── mri_imaging_eda_03.08.2026/
-│   ├── patient_count_EDA/
-│   └── tabular_feature_EDA/
+│   ├── Multimodal vs Single Modality/        # Integrated multimodal dataset + coverage analysis
+│   ├── Feature Deep Dive/                   # Feature-level distributions, correlations, and longitudinal behavior
+│   ├── MRI_Longitudinal_Dynamics/           # MRI scan availability, retention, and dropout patterns
+│   ├── Statistical and Patient Trajectories/ # ANOVA, feature significance, and patient-level trajectories
+│   └── README.md                            # Overview of all EDA analyses
 │
 ├── Modeling on the Imaging Dataset/   # Transformer-based survival model on MRI
 │   ├── Config/
@@ -77,6 +76,51 @@ alzheimer-prediction/
 ├── README.md
 ├── environment.yml
 └── requirements.txt
+```
+
+---
+
+## Exploratory Data Analysis (EDA)
+
+The `EDA/` directory contains a set of complementary analyses designed to build a complete understanding of the ADNI dataset before modeling.
+
+Each EDA focuses on a different dimension of the data:
+
+### Multimodal vs Single Modality
+- Integrates genetics, plasma biomarkers, cognition, and MRI-derived features
+- Analyzes overlap between modalities and cohort construction
+- Highlights limitations of multimodal modeling due to sparse MRI coverage
+
+### Feature Deep Dive
+- Examines distributions and correlations of key clinical features
+- Compares CN, MCI, and AD populations
+- Validates biological signals (e.g., APOE, amyloid, tau)
+
+### MRI Longitudinal Dynamics
+- Studies MRI scan frequency, follow-up duration, and dropout behavior
+- Identifies retention bias (progressing patients are tracked longer)
+- Quantifies imaging vs tabular data availability gaps
+
+### Statistical and Patient Trajectories
+- Performs ANOVA-based feature significance testing
+- Visualizes feature distributions across diagnosis groups
+- Tracks individual patient trajectories over time
+
+### Why this matters
+
+These analyses collectively:
+
+- Define the **true usable cohort**
+- Identify **high-signal features**
+- Reveal **longitudinal and modality biases**
+- Inform **model design and feature engineering decisions**
+
+The EDA work directly supports the survival modeling pipeline by ensuring that assumptions about the data are validated before training.
+
+For full details, see:
+
+```
+EDA/README.md
 ```
 
 ---
